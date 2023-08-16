@@ -47,15 +47,55 @@ Object.assign(ObjectA, {b: 3, c:4});
 console.log(objectA)
 
 // Array of objects
-let journal = [
-    {events: ["work", "touched tree", "pizza",
-              "running", "television"],
-     squirrel: false},
-    {events: ["work", "ice cream", "cauliflower",
-              "lasagna", "touched tree", "brushed teeth"],
-     squirrel: false},
-    {events: ["weekend", "cycling", "break", "peanuts",
-              "beer"],
-     squirrel: true},
-    /* and so on... */
-  ];
+// let journal = [
+//     {events: ["work", "touched tree", "pizza",
+//               "running", "television"],
+//      squirrel: false},
+//     {events: ["work", "ice cream", "cauliflower",
+//               "lasagna", "touched tree", "brushed teeth"],
+//      squirrel: false},
+//     {events: ["weekend", "cycling", "break", "peanuts",
+//               "beer"],
+//      squirrel: true},
+//     /* and so on... */
+//   ];
+
+// Mutability - objects are mutable
+let object1 = {value:10};
+let object2 = object1;
+let object3 = {value: 10};
+
+console.log(object1 == object2);
+console.log(object1 == object3);
+
+object1.value = 15;
+console.log(object2.value);
+console.log(object3.value);
+
+// Variables delcared with let can have bindings reassigned
+let x = 10;
+x = 20;
+// Doing that with const will throw an error
+const score = {visitors: 0, home: 0};
+score.visitors = 1; // We can change this because the object is mutable
+// score = {visitors: 1, home: 1}; not allowed, cannot point to a new object
+
+// Lycanthrope's log
+let journal = [];
+
+function addEntry(events, squirrel) {
+    journal.push({events, squirrel});
+}
+
+addEntry(["work", "touched tree", "pizza", "running",
+          "television"], false);
+addEntry(["work", "ice cream", "cauliflower", "lasagna",
+          "touched tree", "brushed teeth"], false);
+addEntry(["weekend", "cycling", "break", "peanuts",
+          "beer"], true);
+
+
+// Compute correlation coefficient
+function phi(table) {
+    //
+}
