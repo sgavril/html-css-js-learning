@@ -46,3 +46,82 @@ const hummus = function(factor) {
 hummus(2)
 
 // Functions as values
+let launchMissiles = function() {
+    missileSystem.launch("now");
+};
+safeMode=true;
+if (safeMode) {
+    launchMissiles = function() { /* do nothing */};
+}
+
+
+// Function is hoisted to the top of their containing scope
+console.log("The future says:", future());
+function future() {
+    return "You'll never have flying cars.";
+}
+
+// Arrow functions, kind of like lambda expressions
+const power = (base, exponent) => {
+    let result = 1;
+    for (let count = 0; count < exponent; count++) {
+        result *= base;
+    }
+    return result
+}
+const square1 = (x) => {return x * x; };
+const square2 = x => x * x;
+
+// The call stack, below exceeds Maximum call stack size
+// function chicken() {
+//     return egg();
+// }
+
+// function egg() {
+//     return chicken();
+// }
+// console.log(chicken() + "came first.")
+
+// Closure AKA access to the parent scope's variables
+// even after the parent function has executed
+function wrapValue(n) {
+    let local = n;
+    return () => local;
+}
+let wrap1 = wrapValue(1);
+let wrap2 = wrapValue(2);
+console.log(wrap1());
+console.log(wrap2());
+
+// Think of function values as containing both the code
+// in their body + the environment in which they were created
+function multiplier(factor) {
+    return number => number * factor;
+}
+let twice = multiplier(2);
+console.log(twice(5));
+
+// Recursion
+function powerRecursive(base, exponent) {
+  if (exponent == 0) {
+    return 1;
+  } else {
+    return base * power(base, exponent - 1);
+  }
+}
+
+// Recursive solution to puzzle
+function findSolution(target) {
+    function find(current, history) {
+        if (current == target) { return history; }
+        else if (current > target) { return null; }
+        else {
+            return find(current + 5, `(${history} + 5)`) ||
+                   find(current * 3, `(${history} * 3)`);
+        }
+    }
+    return find(1, "1");
+}
+console.log(findSolution(24));
+
+// Growing functions
