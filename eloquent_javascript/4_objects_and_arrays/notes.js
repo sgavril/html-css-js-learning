@@ -1,3 +1,5 @@
+const JOURNAL = require("./jacques_journal");
+
 // Arrays
 let listOfNumber = [2, 3, 5, 7, 11]
 console.log(listOfNumbers[2]);
@@ -97,5 +99,143 @@ addEntry(["weekend", "cycling", "break", "peanuts",
 
 // Compute correlation coefficient
 function phi(table) {
-    //
+    return (table[3] * table[0] - table[2] * table[1]) /
+    Math.sqrt((table[2] + table[3]) *
+              (table[0] + table[1]) *
+              (table[1] + table[3]) *
+              (table[0] + table[2]));
 }
+
+// Array loops - regular loop
+for (let i=0; i < JOURNAL.length; i++) {
+    let entry = JOURNAL[i];
+    // Do something with the entry
+}
+
+// Array loops - more concise
+for (let entry of JOURNAL) {
+    console.log(`${entry.events.length} events.`)
+}
+
+// The final analysis -  correlation for every type of event
+// First find every type of event
+function journalEvents(journal) {
+    let events = [];
+    for (let entry of journal) {
+        for (let event of entry.events) {
+            if (!events.includes(event)) {
+                events.push(event)
+            }
+        }
+    }
+    return events;
+}
+
+console.log(journalEvents(JOURNAL));
+
+// Now we can see the correlations
+// Add a filter for < -0.1 or > 0.1
+for (let event of journalEvents(JOURNAL)) {
+    let correlation = phi(tableFor(event, JOURNAL));
+    if (correlation > 0.1 || correlation < -0.1){
+        console.log(event + ":", phi(tableFor(event, JOURNAL)));
+    }
+}
+
+// Further exploration
+for (let entry of JOURNAL) {
+    if (entry.events.includes("peanuts") &&
+       !entry.events.includes("brushed teeth")) {
+      entry.events.push("peanut teeth");
+    }
+  }
+  console.log(phi(tableFor("peanut teeth", JOURNAL)));
+
+// Further arrayology
+// Shift and unshift are like push/pop for the start of an array
+let todoList = [];
+function remember(task) {
+    todoList.push(task);
+}
+function getTask() {
+    return todoList.shift();
+}
+function rememberUrgently(task) {
+    todoList.unshift(task);
+}
+
+// indexOf and lastIndexOf
+console.log([1, 2, 3, 2, 1].indexOf(2));
+console.log([1, 2, 3, 2, 1].lastIndexOf(2)); // Search from the end instead
+// slice ; start inclusive, end exclusive
+console.log([0, 1, 2, 3, 4].slice(2, 4));
+console.log([0, 1, 2, 3, 4].slice(2));
+// concat
+function remove(array, index) {
+    return array.slice(0, index)
+        .concat(array.slice(index+1));
+}
+console.log(remove(["a", "b", "c", "d", "e"], 2));
+
+// Strings - their properties
+let kim = "Kim"
+kim.age = 88; // strings are immutable types 
+console.log(kim.age); // undefined
+
+// Strings - built-in properties
+console.log("coconuts".slice(4, 7));
+console.log("coconut".indexOf("u"));
+console.log("one two three".indexOf("ee")); // Can search > 1 char unlike array method
+console.log("  okay \n ".trim()); // Rm whitespace from staart and end
+console.log(String(6).padStart(3, "0"));
+// Splitting and joining below
+let sentence = "Secretarybirds specialize in stomping"; 
+let words = sentence.split(" ");
+console.log(words);
+console.log(words.join(". "));
+// Repeating
+console.log("LA".repeat(3));
+console.log("LA".repeat(3).length);
+
+// Rest paramaters - parameter is bound to an array containing all further args
+function max(...numbers) {
+    let result = -Infinity;
+    for (let number of numbers) {
+        if (number > result) result = number;
+    }
+    return result
+    ;
+}
+console.log(max(4, 1, 9, -2));
+// Can also use notation to call a function with array argument
+let numbers = [5, 1, 7];
+console.log(max(...numbers));
+// And can spread one array into another
+let words2 = ["never", "fully"];
+console.log(["will", ...words, "understand"]);
+
+// The Math object
+function randomPointOnCircle(radius) {
+    let angle = Math.random() * 2 * Math.PI;
+    return {x: radius * Math.cos(angle),
+            y: radius * Math.sin(angle)};
+  }
+  console.log(randomPointOnCircle(2));
+console.log(Math.random());
+console.log(Math.floor(Math.random() * 10));
+
+// Destructuring - arrays
+function phi2([n00, n01, n10, n11]) {
+    return (n11 * n00 - n10 * n01) /
+      Math.sqrt((n10 + n11) * (n00 + n01) *
+                (n01 + n11) * (n00 + n10));
+  }
+// Destructuring - objects
+let {name} = {name: "Faraji", age: 23};
+console.log(name);
+
+//JSON
+let string = JSON.stringify({squirrel: false,
+    events: ["weekend"]});
+console.log(string);
+console.log(JSON.parse(string).events);
