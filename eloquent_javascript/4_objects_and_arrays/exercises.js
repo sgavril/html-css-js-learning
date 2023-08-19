@@ -57,9 +57,36 @@ function reverseArrayInPlace(inputArray) {
         inputArray[i] = inputArray[opposite];
         inputArray[opposite] = tmp;
     }
-    return inputArray 
+    return inputArray
 }
 
 // A list
+function arrayToList(inputArray) {
+    let list = null;
+    for (i=inputArray.length - 1; i>=0; i--) {
+        list = {value: inputArray[i], rest: list};
+    }
+    return list
+}
+
+function listToArray(inputList) {
+    outputArray = [];
+    for (let node=inputList; node; node=node.rest) {
+        if (node.value != undefined) {
+            outputArray.push(node.value);
+        }
+    }
+    return outputArray
+}
+
+function prependFirstAttempt(element, inputList) {
+    arrayForm = listToArray(inputList);
+    arrayForm.unshift(element);
+    return arrayToList(arrayForm)
+}
+
+function prepend(element, inputList) {
+    return {value: element, rest: inputList};
+}
 
 // Deep comparison
