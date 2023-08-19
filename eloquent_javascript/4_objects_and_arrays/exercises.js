@@ -89,4 +89,33 @@ function prepend(element, inputList) {
     return {value: element, rest: inputList};
 }
 
+function nth(inputList, position) {
+    if (!inputList) { return undefined; }
+    if (position == 0) { return inputList.value; }
+    else { return nth(inputList['rest'], position - 1); }
+}
+
+console.log(nth(arrayToList([10, 20, 30]), 1));
+
 // Deep comparison
+// `==` and `===` check whther objects refer to same spot in memory
+// NOT whether the contents are identical
+let objA = { key: 'value'};
+let objB = { key: 'value'};
+console.log(objA == objB); // returns false
+
+function deepEqual(val1, val2) {
+    if (typeof val1 == "object" && val1 != null && typeof val2 == "object" && val2 != null) {
+        const keysVal1 = Object.keys(val1);
+        const keysVal2 = Object.keys(val2);
+
+        if (keysVal1.length != keysVal2.length) { return false; }
+
+        for (let key of keysVal1) {
+            if (!keysVal2.includes(key) || !deepEqual(val1[key], val2[key])) {
+                return false;
+            }
+        }
+        return true;
+    } else { return val1 === val2;}
+}
