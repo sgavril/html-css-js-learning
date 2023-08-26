@@ -151,5 +151,39 @@ for (let char of roseDragon) {
     console.log(char);
 }
 
-// Recognizing text
+// Recognizing text - counting the # of characters in each script
+// Start with this abstraction
+function countBy(items, groupName) {
+    // Takes a collection (anything "loopable")
+    // and a function computing a group name
+    // Returns an array of objects each naming a group + # of obj
+    let counts = [];
+    for (let item of items) {
+        let name = groupName(item);
+        let known = counts.findIndex(c => c.name == name); // Find first value for which given fn returns true
+        if (known == -1) {
+            counts.push({name, count: 1});
+        } else {
+            counts[known].count++;
+        }
+    }
+    return counts;
+}
+console.log(countBy([1, 2, 3, 4, 5], n => n> 2 ));
 
+// Function to analyze a text: determine the % of chars belonging to each script
+// Using helper functions
+function textScripts(text) {
+    // Step 1: count scripts
+    let scripts = countBy(text, char => { // Count occurrences of each script in the text
+        let script = characterScript(char.codePointAt(0)); // Get the unicode code point of the character
+        return script ? script.name: "none"; // Return the name of the script to which a character belongs
+    }).filter(({name}) => name != "none");
+
+    let total = scripts.reduce((n, {count}) => n + count, 0); // Calculate total # of chars
+    if (total == 0) return "No scripts found.";
+
+    return scripts.map(({name, count}) => {
+        return `${Math.round(count * 100 / total)}% ${name}`;
+    }).join(", ");
+}
