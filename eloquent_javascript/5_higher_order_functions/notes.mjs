@@ -187,3 +187,4 @@ function textScripts(text) {
         return `${Math.round(count * 100 / total)}% ${name}`;
     }).join(", ");
 }
+console.log(textScripts('英国的狗说"woof", 俄罗斯的狗说"тяв"'));
