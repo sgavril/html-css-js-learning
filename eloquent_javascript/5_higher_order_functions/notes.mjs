@@ -64,3 +64,92 @@ function mapCustom(array, transform) {
 
 let rtlScripts = SCRIPTS.filter(s => s.direction == "rtl");
 console.log(mapCustom(rtlScripts, s => s.name));
+
+// Summarizing with reduce
+// AKA computing a single value
+// Parameters are the array + combination function + start value
+function reduce(array, combine, start) {
+    let current = start;
+    for (let element of array) {
+        current = combine(current, element);
+    }
+    return current;
+}
+// Standard array reduce lets you leave off start argument
+// and will just take the first element
+console.log(reduce([1, 2, 3, 4], (a, b) => a + b))
+//Using reduce twice to find the script with the most characters
+// First use destructuring to reduce ranges of a script by summing their sizes
+function characterCount(script) {
+    return script.ranges.reduce((count, [from, to]) => {
+        return count + (to - from);
+    }, 0);
+}
+
+// Then call reduce again to find the largest script by repeatedly
+// comparing two scripts and returning the larger one
+console.log(SCRIPTS.reduce((a, b) => {
+    return characterCount(a) < characterCount(b) ? b : a;
+}));
+
+// Composability - previous example without higher-order functions
+let biggest = null;
+for (let script of SCRIPTS) {
+    if (biggest == null || characterCount(biggest) < characterCount(script)) {
+        biggest = script;
+    }
+}
+console.log(biggest);
+// Higher-order functions shine when we need to compose functions
+// Here we will find the average year of origin for living + dead scripts
+// Build up new arrays when running filter and map
+function average(array) {
+    return array.reduce((a,b) => a+b) / array.length;
+}
+
+console.log(Math.round(average(SCRIPTS.filter(s => s.living).map(s => s.year))));
+console.log(Math.round(average(SCRIPTS.filter(s => !s.living).map(s => s.year))));
+
+// Writing the above computation as a big loop would be:
+let total = 0, count = 0;
+for (let script of SCRIPTS) {
+    if (script.living) {
+        total += script.year;
+        count += 1;
+    }
+}
+console.log(Math.round(total / count)); // Approach does less work but is less readable
+
+// Strings and character codes
+// What script is each piece of text using?
+// some() tests whether at least one element in the array passes the test
+//  It is also a higher order function ; takes a test fn and tells us
+//  whether that function returns true for any elements in the array
+function characterScript(code) {
+    for (let script of SCRIPTS) {
+        if (script.ranges.some(([from, to]) => {
+            return code >= from && code < to;
+        })) {
+            return script;
+        }
+    }
+    return null;
+}
+console.log(characterScript(121));
+
+// Two unit code challenges - emojis to the rescue??
+let horseShoe = "🐴👟";
+console.log(horseShoe.length);
+console.log(horseShoe[0]);
+console.log(horseShoe.charCodeAt(0)); // Gives a code unit (not full character code)
+console.log(horseShoe.codePointAt(0)); // Gives a full Unicode character)
+// To iterate over a string, we need to deal with whether a character
+//  takes up one or two code units
+//  for/of loops can be used on strings, giving us real characters
+let roseDragon = "🌹🐉";
+for (let char of roseDragon) {
+    console.log(char);
+}
+
+// Recognizing text
+
