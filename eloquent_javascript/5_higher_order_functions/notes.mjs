@@ -136,6 +136,8 @@ function characterScript(code) {
     return null;
 }
 console.log(characterScript(121));
+const script = characterScript('a'.codePointAt(0)); // returns 97
+console.log(script.name); // Output should be "Latin"
 
 // Two unit code challenges - emojis to the rescue??
 let horseShoe = "🐴👟";
@@ -170,6 +172,15 @@ function countBy(items, groupName) {
     return counts;
 }
 console.log(countBy([1, 2, 3, 4, 5], n => n> 2 ));
+const text = "hello";
+const counts = countBy(text, char => {
+    if ("aeiou".includes(char)) {
+        return "vowel";
+    } else {
+        return "consonant";
+    }
+});
+console.log(counts);
 
 // Function to analyze a text: determine the % of chars belonging to each script
 // Using helper functions

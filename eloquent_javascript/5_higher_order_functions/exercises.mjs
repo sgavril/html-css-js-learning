@@ -73,14 +73,13 @@ function dominantDirection(text) {
         return script ? script.direction : "none";
     }).filter(({name}) => name != "none");
 
-    // Get direction with reduce
-    let total = directions.reduce((n, {count}) => n + count, 0);
-    if (total == 0) return "No dominant direction";
+    if (directions.length == 0) return "No dominant direction";
 
-    return SCRIPTS.map(({direction, count}) => {
-        return `${count} ${direction}`
-    }).join(", ");
+    let dominant = directions.reduce((a, b) => {
+        return a.count < b.count? b : a;
+    });
 
+    return dominant
 }
 console.log(dominantDirection("Hello!"));
 console.log(dominantDirection("Hey, مساء الخير"));
