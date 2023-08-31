@@ -115,3 +115,13 @@ console.log("Is toString's age known?", "toString" in ages);
 // So, we can see using plain objects as maps is dangeorus
 // Ways to avoid: 1) create object with no prototype
 console.log("toString" in Object.create(null));
+
+// Map class from JavaScript - get, set and has
+//let ages = new Map();
+ages.set("Boris", 39);
+ages.set("Liang", 22);
+ages.set("Julia", 62);
+
+console.log(`Julia is ${ages.get(Julia)}`);
+console.log("Is Jack's age known?", ages.has("Jack"));
+console.log(ages.has("toString"));
