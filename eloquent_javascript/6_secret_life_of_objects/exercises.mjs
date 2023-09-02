@@ -43,6 +43,21 @@ class Group {
         }
         return group;
     }
+
+    [Symbol.iterator]() { return new GroupIterator(this); }
 }
 
 // Iterable
+class GroupIterator {
+    constructor(group) {
+        this.group = group;
+        this.index=0;
+    }
+
+    next() {
+        if (this.index >= this.group.members.length) return { done: true };
+        const value = this.group.members[this.index];
+        this.index++;
+        return { value, done: false};
+    }
+}
