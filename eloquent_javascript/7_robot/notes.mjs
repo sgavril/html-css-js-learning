@@ -49,3 +49,109 @@ class VillageState {
         }
     }
 }
+
+let first = new VillageState(
+    "Post Office",
+    [{place: "Post Office", address: "Alice's House"}]
+);
+let next = first.move("Alice's House");
+
+console.log("First state: ")
+console.log(first.place);
+console.log(first.parcels);
+console.log("next state: ")
+console.log(next.place);
+console.log(next.parcels);
+
+// Persisten data
+let object = Object.freeze({value: 5})
+//object.value = 10;
+console.log(object.value);
+
+// Simulation
+function runRobot(state, robot, memory) {
+    for (let turn = 0;; turn++) {
+        if (state.parcels.length == 0) {
+            console.log(`Done in ${turn} turns.`);
+            break;
+        }
+    let action = robot(state, memory);
+    state = state.move(action.direction);
+    memory = action.memory;
+    console.log(`Moved to ${action.direction}`);
+    }
+}
+
+// The dumbest strategy: walk randomly every turn
+function randomPick(array) {
+    let choice = Math.floor(Math.random() * array.length);
+    return array[choice];
+}
+
+function randomRobot(state) {
+    return {direction: randomPick(roadGraph[state.place])};
+}
+
+VillageState.random = function(parcelCount = 5) {
+    let parcels = [];
+    for (let i = 0; i < parcelCount; i++) {
+        let address = randomPick(Object.keys(roadGraph));
+        let place;
+        do {
+            place = randomPick(Object.keys(roadGraph));
+        } while (place == address);
+        parcels.push({place, address});
+    }
+    return new VillageState("Post Office", parcels);
+};
+
+runRobot(VillageState.random(), randomRobot);
+
+const mailRoute = [
+    "Alice's House", "Cabin", "Alice's House", "Bob's House",
+    "Town Hall", "Daria's House", "Ernie's House",
+    "Grete's House", "Shop", "Grete's House", "Farm",
+    "Marketplace", "Post Office"
+  ];
+
+function routeRobot(state, memory) {
+if (memory.length == 0) {
+    memory = mailRoute;
+}
+return {direction: memory[0], memory: memory.slice(1)};
+}
+
+runRobot(VillageState.random(), routeRobot, []);
+
+// Shorest route: "grow" routes from starting point
+function findRoute(graph, from, to) {
+    // Keep a work list (array of places to explore next)
+    // + the route that got us there
+    let work = [{at: from, route: []}]; // Initialize with start pos. + empty route
+    for (let i = 0; i < work.length; i++) {
+        let {at, route} = work[i];
+        for (let place of graph[at]) {
+            // If place is the goal, finished route is returned
+            if (place == to) return route.concat(place);
+            // Otherwise (haven't looked at place) add item to list
+            if (!work.some(w => w.at == place)) {
+                work.push({at: place, route: route.concat(place)});
+            }
+        }
+    }
+}
+
+
+function goalOrientedRobot({place, parcels}, route) {
+    if (route.length == 0) {
+      let parcel = parcels[0];
+      if (parcel.place != place) {
+        route = findRoute(roadGraph, place, parcel.place);
+      } else {
+        route = findRoute(roadGraph, place, parcel.address);
+      }
+    }
+    return {direction: route[0], memory: route.slice(1)};
+  }
+
+runRobot(VillageState.random(), goalOrientedRobot, []);
