@@ -9,16 +9,16 @@ const roads = [
   ];
 
 function buildGraph(edges) {
-let graph = Object.create(null);
-function addEdge(from, to) {
-    if (graph[from] == null) { graph[from] = [to]; }
-    else { graph[from].push(to); }
-}
-for (let [from, to] of edges.map(r => r.split("-"))) {
-    addEdge(from, to);
-    addEdge(to, from);
-}
-return graph;
+    let graph = Object.create(null);
+    function addEdge(from, to) {
+        if (graph[from] == null) { graph[from] = [to]; }
+        else { graph[from].push(to); }
+    }
+    for (let [from, to] of edges.map(r => r.split("-"))) {
+        addEdge(from, to);
+        addEdge(to, from);
+    }
+    return graph;
 }
 
 const roadGraph = buildGraph(roads);
@@ -63,7 +63,7 @@ console.log("next state: ")
 console.log(next.place);
 console.log(next.parcels);
 
-// Persisten data
+// Persistent data
 let object = Object.freeze({value: 5})
 //object.value = 10;
 console.log(object.value);
@@ -115,10 +115,10 @@ const mailRoute = [
   ];
 
 function routeRobot(state, memory) {
-if (memory.length == 0) {
-    memory = mailRoute;
-}
-return {direction: memory[0], memory: memory.slice(1)};
+    if (memory.length == 0) {
+        memory = mailRoute;
+    }
+    return {direction: memory[0], memory: memory.slice(1)};
 }
 
 runRobot(VillageState.random(), routeRobot, []);
