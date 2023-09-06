@@ -79,3 +79,86 @@ console.log(lastElement([5,4,3,2,1]));
 //     console.log("Something went wrong: " + error);
 //   }
 
+// Cleaning up after exceptions - bad banking code
+const accounts = {
+    a: 100,
+    b: 0,
+    c: 20
+};
+
+function getAccount() {
+    let accountName = prompt("Enter an account name");
+    if (!accounts.hasOwnProperty(accountName)) {
+        throw new Error(`No such account ${accountName}`);
+    }
+    return accountName;
+}
+
+function badTransfer(from, amount) {
+    if (accounts[from] < amount) return;
+    accounts[from] -= amount;
+    accounts[getAccount()] += amount; // if exception, money is just lost
+}
+
+// Suggestion is to have fewer side effects
+// But when that is not possible, follow with a finally block
+function transfer(from, amount) {
+    if (accounts[from] < amount) return;
+    let progress = 0;
+    try {
+        accounts[from] -= amount;
+        progress = 1;
+        accounts[getAccount()] += amount;
+        progress = 2;
+    } finally {
+        if (progress == 1) {
+            accounts[from]+= amount;
+        }
+    }
+}
+
+// Selective catching
+// Problems that are expected to happen should never be left unhandled
+// See how the catch hides what is actually happening
+// for (;;) {
+//     try {
+//         let dir = promtDirection("Where?"); // typo
+//         console.log("You chose: ", dir);
+//         break;
+//     } catch(e) {
+//         console.log("Not a valid direction. Try again.");
+//     }
+// }
+
+// Catching specific kinds of exceptions
+// Check in catch block for error of interest
+class InputError extends Error {}
+
+// function promptDirection(question) {
+//     let result = prompt(question);
+//     if (result.toLowerCase() == "left") return "L";
+//     if (result.toLowerCase() == "right") return "R";
+//     throw new InputError("Invalid direction: " + result);
+// }
+
+// for (;;) {
+//     try {
+//       let dir = promptDirection("Where?");
+//       console.log("You chose ", dir);
+//       break;
+//     } catch (e) {
+//       if (e instanceof InputError) {
+//         console.log("Not a valid direction. Try again.");
+//       } else {
+//         throw e;
+//       }
+//     }
+//   }
+
+// Assertions - verify something is the way it should be
+// Reserver assertions for mistakes that are easy to make
+// And not every possible case, ie:
+function firstElement(array) {
+    if (array.length == 0) { throw new Error("firstelement called with []");}
+    return array[0];
+}
