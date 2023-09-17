@@ -35,3 +35,24 @@ console.log(plusOne(4));
 // CommonJS
 // requre - call with a dependency -> module is loaded
 // and interface is returned
+// modules automatically get their own scope
+// below is a date-formatting function:
+// using two packages and exports a single function
+import ordinal from "ordinal";
+// below is destructuring to create a binding of an imported interface
+import { days, months } from "date-names";
+
+export function formatDate(date, format) {
+    return format.replace(/YYYY|M(MMM)?|Do?|dddd/g, tag => {
+        if (tag == 'YYYY') return date.getFullYear();
+        if (tag == 'M') return date.getMonth();
+        if (tag == 'MMMM') return months[date.getMonth()];
+        if (tag == 'D') return date.getDate();
+        if (tag == 'Do') return ordinal(date.getDate());
+        if (tag == 'dddd') return days[date.getDay()];
+    });
+};
+
+// using the above module
+// const {formatDate} = require("./format-date");
+console.log(formatDate(new Date(2017, 9, 13), "ddd the Do"));
