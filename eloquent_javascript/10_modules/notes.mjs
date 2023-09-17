@@ -3,7 +3,7 @@
 //  1) what it relies on
 //  2) what other functionality it provides
 
-// Improvied modules
+// Improvised modules
 const weekDay = function() {
     const names = ["Sunday", "Monday", "Tuesday", "Wednesday",
                     "Thursday", "Friday", "Saturday"];
