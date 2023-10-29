@@ -1,3 +1,4 @@
+// Array of bi-directional connections between two nodes
 const connections = [
   "Church Tower-Sportsgrounds", "Church Tower-Big Maple", "Big Maple-Sportsgrounds",
   "Big Maple-Woods", "Big Maple-Fabienne's Garden", "Fabienne's Garden-Woods",
@@ -8,6 +9,7 @@ const connections = [
   "Gilles' Garden-Big Oak", "Gilles' Garden-Butcher Shop", "Chateau-Butcher Shop"
 ]
 
+// Creates and returns a storage object for a node
 function storageFor(name) {
   let storage = Object.create(null)
   storage["food caches"] = ["cache in the oak", "cache in the meadow", "cache under the hedge"]
@@ -33,6 +35,8 @@ function storageFor(name) {
 }
 
 class Network {
+  // Constructor: takes a list of conns + storage init fn
+  //  Create Node objects for each node + their conns + init storage
   constructor(connections, storageFor) {
     let reachable = Object.create(null)
     for (let [from, to] of connections.map(conn => conn.split("-"))) {
@@ -45,10 +49,13 @@ class Network {
     this.types = Object.create(null)
   }
 
+  // Allows defining handler functions for different types of requests/messages
+  // that nodes can send to each other
   defineRequestType(name, handler) {
     this.types[name] = handler
   }
 
+  // Execute a given function on every node
   everywhere(f) {
     for (let node of Object.values(this.nodes)) f(node)
   }
@@ -56,6 +63,8 @@ class Network {
 
 const $storage = Symbol("storage"), $network = Symbol("network");
 
+// (de)-serialize values when sending or interacting with storage
+// to simulate
 function ser(value) {
   return value == null ? null : JSON.parse(JSON.stringify(value))
 }
@@ -69,6 +78,7 @@ class Node {
     this[$storage] = storage
   }
 
+  // nodes can send messages (asynchronously)
   send(to, type, message, callback) {
     let toNode = this[$network].nodes[to]
     if (!toNode || !this.neighbors.includes(to))
@@ -87,11 +97,13 @@ class Node {
     }, 10 + Math.floor(Math.random() * 10))
   }
 
+    // nodes can read from their local storage (asynchronously)
   readStorage(name, callback) {
     let value = this[$storage][name]
     setTimeout(() => callback(value && JSON.parse(value)), 20)
   }
 
+  // nodes can write to their local storage (asynchronously)
   writeStorage(name, value, callback) {
     setTimeout(() => {
       this[$storage][name] = JSON.stringify(value)

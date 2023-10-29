@@ -90,3 +90,183 @@ function request(nest, target, type, content) {
         attempt(1);
     });
 }
+
+// Isolating from callbacks: define a wrapper for defineRequestType
+// Simplifies the process of defining new request types
+function requestType(name, handler) {
+    defineRequestType(name, (nest, content, source,
+        callback) => {
+    try {
+        Promise.resolve(handler(nest, content, source))
+        .then(response => callback(null, response),
+        failure => callback(failure));
+    } catch (exception) {
+        callback(exception);
+    }
+    });
+}
+
+// Collections of promises running at the same time
+// Use Promise.all (waits for all to resolve then resolves to an array)
+requestType("ping", () => "pong"); // Define a new request type
+
+// Determine which neighbors are available for communication
+function availableneighbors(nest) {
+    // For each neighbor, send a 'ping' request
+    // request returns a promise that is resolved if ping is successful
+    let requests = nest.neighbors.map(neighbor => {
+        return request(nest, neighbor, "ping")
+            .then( () => true, () => false); // if successful return true
+    });
+    return Promise.all(requests).then(result => { // wait for all ping requests to settle
+        return nest.neighbors.filter((_, i) => result[i]); // filter available neighbors
+    });
+}
+
+// network flooding
+import { everywhere } from "./crow-tech.mjs";
+
+// avoid sending same messae forever:
+//  each nest keeps an array of gossip strings
+//  reminder: everywhere runs code on every nost
+//  here we adda property to the state of a nest called gossip
+everywhere(nest => {
+    nest.state.gossip = [];
+});
+
+function sendGossip(nest, message, exceptFor = null) {
+    nest.state.gossip.push(message);
+    for (let neighbor of nest.neighbors){
+        if (neighbor == exceptFor) continue;
+        request(nest, neighbor, "gossip", message);
+    }
+}
+
+// define the gossip request type
+requestType("gossip", (nest, message, source) => {
+    if (nest.state.gossip.includes(message)) return;
+    console.log(`${nest.name} recieved gossip '${
+        message}' from ${source}`);
+    sendGossip(nest, message, source);
+})
+
+// sendGossip(bigOak, "Kids with airgun in the park");
+// Message attempt sent
+// Message attempt sent
+// Fabienne's Garden recieved gossip 'Kids with airgun in the park' from Cow Pasture
+// Message attempt sent
+// A hollow above the third big branch from the bottom. Several pieces of bread and a pile of acorns.
+// Tall Poplar recieved gossip 'Kids with airgun in the park' from Butcher Shop
+// Chateau recieved gossip 'Kids with airgun in the park' from Butcher Shop
+// Hawthorn recieved gossip 'Kids with airgun in the park' from Gilles' Garden
+// Great Pine recieved gossip 'Kids with airgun in the park' from Gilles' Garden
+// Message attempt sent
+// Message attempt sent
+// Big Maple recieved gossip 'Kids with airgun in the park' from Fabienne's Garden
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Woods recieved gossip 'Kids with airgun in the park' from Fabienne's Garden
+// Message attempt sent
+// Message attempt sent
+// Jacques' Farm recieved gossip 'Kids with airgun in the park' from Hawthorn
+// Sportsgrounds recieved gossip 'Kids with airgun in the park' from Tall Poplar
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Church Tower recieved gossip 'Kids with airgun in the park' from Big Maple
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+// Message attempt sent
+
+// Message routing - one node talks to another
+// do not want network flooding
+// set up messages to hop from node to node
+// but this requires knowing the network layout
+// each nest only knows direct neighbors
+// use flooding again, but check whether the new set of neighbors
+//  matches the current set
+
+// I want to see what the network looks like after updating:
+function printConnections(nest) {
+    console.log(`[${nest.name}] Current connections:`);
+    for (let [name, neighbors] of nest.state.connections){
+        console.log(`   ${name}: ${neighbors}`);
+    }
+}
+
+requestType("connections", (nest, {name, neighbors}, source) => {
+    // set up new request type
+    // when a nest recieves a connections request: check if knows about
+    //  the connections of the nest given to 'name'
+    // If known, and the connectins are the same between known and recieved
+    //  no further action needed
+    // Otherwise update the new connections
+    console.log(`[${nest.name}] Recieved connections for ${name}: ${neighbors}`);
+    let connections = nest.state.connections;
+    if (JSON.stringify(connections.get(name)) ==
+        JSON.stringify(neighbors)) return;
+    console.log(`[${nest.name}] Updating connections for ${name}.`);
+    connections.set(name, neighbors);
+    broadcastConnections(nest, name, source);
+    printConnections(nest);
+});
+
+function broadcastConnections(nest, name, exceptFor = null) {
+    // broadcast the connections of a specific nest
+    // goes through every neighbor of the caller nest and sends a connections request
+    //
+    console.log(`[${nest.name}] Broadcasting connections for ${name} to neighbors.`);
+    for (let neighbor of nest.neighbors) {
+        console.log(`[${nest.name}] Skipping broadcast to ${neighbor} (source of update).`);
+        if (neighbor == exceptFor) continue;
+        console.log(`[${nest.name}] Sending connections for ${name} to ${neighbor}.`);
+        request(nest, neighbor, "connections", {
+            name, neighbors: nest.state.connections.get(name)
+        });
+    }
+}
+
+everywhere(nest => {
+    nest.state.connections = new Map();
+    nest.state.connections.set(nest.name, nest.neigbors);
+    broadcastConnections(nest, nest.name);
+});
+
+
+// After we broadcast connections, we have a map of the current network graph
+// now we need to find routes
+// findRoute from ch.7 for reference
+// function findRoute(graph, from, to) {
+//     // Keep a work list (array of places to explore next)
+//     // + the route that got us there
+//     let work = [{at: from, route: []}]; // Initialize with start pos. + empty route
+//     for (let i = 0; i < work.length; i++) {
+//         let {at, route} = work[i];
+//         for (let place of graph[at]) {
+//             // If place is the goal, finished route is returned
+//             if (place == to) return route.concat(place);
+//             // Otherwise (haven't looked at place) add item to list
+//             if (!work.some(w => w.at == place)) {
+//                 work.push({at: place, route: route.concat(place)});
+//             }
+//         }
+//     }
+// }
+
+function findRoute(from, to, connections) {
+
+}
