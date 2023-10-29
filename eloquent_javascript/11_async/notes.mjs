@@ -267,6 +267,20 @@ everywhere(nest => {
 //     }
 // }
 
+// Find a route between to points in a network represented by connections
+// Network is an adjacency list
 function findRoute(from, to, connections) {
-
+    // Initialize the work array to keep track of places to explore next
+    let work = [{at: from, via: null}];
+    for (let i = 0; i < work.length; i++) {                 // loop through the work list
+        let {at, via} = work[i];                            // destructure to get at and via
+        for (let next of connections.get(at) || [] ) {      // explore neighbouring nodes
+            if (next == to) return via;                     // if dest reached return via
+            if (!work.some(w => w.at == next)) {            // add unexplored neighbours to work list
+                work.push({at: next, via: via || next});
+            }
+        }
+    }
 }
+
+// Now build a function to handle long-distance messages
