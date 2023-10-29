@@ -276,11 +276,12 @@ function findRoute(from, to, connections) {
         let {at, via} = work[i];                            // destructure to get at and via
         for (let next of connections.get(at) || [] ) {      // explore neighbouring nodes
             if (next == to) return via;                     // if dest reached return via
-            if (!work.some(w => w.at == next)) {            // add unexplored neighbours to work list
-                work.push({at: next, via: via || next});
+            if (!work.some(w => w.at == next)) {            // if neighbour unexplored (not present in work)
+                work.push({at: next, via: via || next});    // add neighbour to work for future exploration
             }
         }
     }
+    return null;                                            // if no route found
 }
 
 // Now build a function to handle long-distance messages
