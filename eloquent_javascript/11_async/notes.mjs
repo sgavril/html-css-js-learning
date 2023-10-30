@@ -285,3 +285,20 @@ function findRoute(from, to, connections) {
 }
 
 // Now build a function to handle long-distance messages
+function routeRequest(nest, target, type, content) {
+    if (nest.neighbors.includes(target)) {
+      return request(nest, target, type, content);
+    } else {
+      let via = findRoute(nest.name, target,
+                          nest.state.connections);
+      if (!via) throw new Error(`No route to ${target}`);
+      return request(nest, via, "route",
+                     {target, type, content});
+    }
+  }
+
+  requestType("route", (nest, {target, type, content}) => {
+    return routeRequest(nest, target, type, content);
+  });
+
+routeRequest(bigOak, "Church Tower", "note", "Incoming jackdaws!");
