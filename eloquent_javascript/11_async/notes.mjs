@@ -301,4 +301,81 @@ function routeRequest(nest, target, type, content) {
     return routeRequest(nest, target, type, content);
   });
 
-routeRequest(bigOak, "Church Tower", "note", "Incoming jackdaws!");
+// routeRequest(bigOak, "Church Tower", "note", "Incoming jackdaws!");
+
+// Async functions
+// Crows can store duplicate info -
+// retrieving a piece of information may need to look at other nests
+
+// first define a new type of request
+// when a nest recieves a "storage" request, it will execute provided fn
+requestType("storage", (nest, name) => storage(nest, name));
+
+// Find a piece of information in the storage of a nest
+// First search locally, and if not found, then search remote
+function findInStorageLinear(nest, name) {
+    return storage(nest, name).then(found => {
+        if (found != null) return found;
+        else return findInRemoteStorage(nest, name);
+    });
+}
+
+// Below is the above function using async
+async function findInStorage(nest, name) {
+    let local = await storage(nest, name);
+    if (local != null) return local;
+
+    let sources = network(nest).filter(n => n != nest.name);
+    sources = network(nest).filter(n => n != nest.name);
+    while (sources.length > 0) {
+        try {
+            let found = await routeRequest(nest, source, "storage", name);
+            if (found != null) return found;
+        } catch (_) {}
+    }
+    throw new Error("Not found");
+}
+
+// return an array of all nests that the given nest can
+// directly communicate with
+// connections is a Map, so can't use Object.keys
+// so instead iterators can be converted to array using Array.from
+function network(nest) {
+    return Array.from(nest.state.connections.keys());
+}
+
+function findInRemoteStorage(nest, name) {
+    // filter out the current nest
+    let sources = network(nest).filter(n => n != nest.name);
+
+    // define next() to iteratively request info from random nests
+    function next() {
+        if (sources.length == 0) {
+            return Promise.reject(new Error("Not found"));
+        } else {
+            let source = sources[Math.floor(Math.random() * sources.length)];
+            sources = sources.filter(n => n != source);
+            return routeRequest(nest, source, "storage", name)
+                .then(value => value != null ? value : next(),
+                    next);
+        }
+    }
+    return next();
+}
+
+// findInStorage(bigOak, "events on 2017-12-21").then(console.log);
+
+// Generators
+// ability to pause a function then resume is not unique to async
+// generator functions are similar but without the promise
+// Calling a generator returns an iterator
+function* powers(n) {
+    for (let current = n;; current *= n) {
+        yield current;
+    }
+}
+
+for (let power of powers(3)) {
+    if (power > 50) break;
+    console.log(power);
+}
