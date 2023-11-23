@@ -379,3 +379,81 @@ for (let power of powers(3)) {
     if (power > 50) break;
     console.log(power);
 }
+
+// Added to ch6 as well, but iterators can be written more simply
+// using genrator functions.
+// do not need to create object: generators save their local state
+// yield expressions may only occur inside the generator
+// async is a special type of generator
+// Group.prototype[Symbol.iterator] = function*() {
+//     for (let i = 0; i < this.members.length; i++) {
+//         yield this.members[i];
+//     }
+// };
+
+// The event loop
+// async is executed piecemeal and in between pieces, program sits idly
+// callbacks are not directly called by the code that scheduled them
+// ie. if setTimeout is called within a function, that function will have returned
+//  already by the time the callback function is called
+// async behavior essentially happens on its own call stack
+// making it difficult to manage exceptions
+// try {
+//     setTimeout(() => {
+//         throw new Error("Whoosh");
+//     }, 20);
+// } catch (_) {
+//     // Not run
+//     console.log("caught!");
+// }
+
+// no two things run at the same time, so slow-code can delay other code
+// set a timeout here which dallies until after the timeout intended point of time
+// causing the timeout to be late
+let start = Date.now();
+setTimeout(() => {
+    console.log("Timeout ran at", Date.now() - start);
+}, 20);
+while (Date.now() < start + 50) {}
+console.log("Wasted time until", Date.now() - start);
+
+// promises alwasys resolve or reject as a new event
+// create a promise that resolves immediately
+// with a callback that logs resolved value
+// but callback provided to then is placed in the microtask queue
+// which is always processed after the current script has finished
+Promise.resolve("Done").then(console.log);
+console.log("Me first!");
+
+// async bugs
+// synchronous code has no state changes other than that from the prog
+// async may have gaps in execution where other code is run
+// ex:crows count the # of chicks that hatch, stored in storage bulbs
+// try to enumerate counts from all nests
+function anyStorage(nest, source, name) {
+    if (source == nest.name) return storage(nest, name);
+    else return routeRequest(nest, source, "storage", name);
+}
+
+// Below is flawed
+// map runs before anything has been added,
+// so each += starts from empty string and adds a single entry to list
+async function chicksBroken(nest, year) {
+    let list = "";
+    await Promise.all(network(nest).map(async name => {
+        list += `${name}: ${
+            await anyStorage(nest, name, `chicks in ${year}`)
+        }\n`;
+    }));
+    return list;
+}
+
+// Proper implementation: return lines from mapped promises
+// and call join on the result
+async function chicks(nest, year) {
+    let lines = network(nest).map(async name => {
+        return name + ": " +
+        await anyStorage(nest, name, `chicks in ${year}`);
+    });
+    return (await Promise.all(lines)).join("\n");
+}
